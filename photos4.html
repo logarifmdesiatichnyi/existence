@@ -39,14 +39,14 @@
         }
 
         div.thumbs img:hover {
-            border: solid 2px red;
+            border: solid 2px rgb(39, 144, 248);
             margin: 3px;
             cursor: pointer;
             border-radius: 50%;
         }
 
         .active {
-            border: solid 3px blue;
+            border: solid 3px rgb(42, 220, 42);
             margin: 2px;
             border-radius: 10%;
         }
@@ -68,6 +68,12 @@
                 bigPhoto.src = src_big;
                 bigPhoto.style.visibility = "visible";
                 bigPhoto.style.opacity = "1";
+
+                // Обновляем информацию о фотографии (при наведении)
+                document.getElementById("photo_info").innerHTML = `
+                    <h2>${currentPhotoData.PhotoName}</h2>
+                    <p>${currentPhotoData.Description}</p>
+                `;
             }
         }
 
@@ -77,6 +83,9 @@
 
                 bigPhoto.style.visibility = "hidden";
                 bigPhoto.style.opacity = "0";
+
+                // Очищаем информацию при уходе курсора с миниатюры
+                document.getElementById("photo_info").innerHTML = "";
             }
         }
 
@@ -108,7 +117,7 @@
                 // Добавить класс для активной миниатюры
                 source_element.classList.add('active');
 
-                // Обновляем информацию о фотографии
+                // Обновляем информацию о фотографии (при клике)
                 document.getElementById("photo_info").innerHTML = `
                     <h2>${currentPhotoData.PhotoName}</h2>
                     <p>${currentPhotoData.Description}</p>
@@ -127,7 +136,10 @@
                         const img = document.createElement('img');
                         img.src = `photos/${photo.ThumbPath}`;
                         img.alt = photo.PhotoName;
-                        img.onmouseover = () => showBigPhotoOnHover(img);
+                        img.onmouseover = () => {
+                            currentPhotoData = photo; // Сохраняем данные текущей фотографии
+                            showBigPhotoOnHover(img);
+                        };
                         img.onmouseout = hideBigPhoto;
                         img.onclick = () => {
                             currentPhotoData = photo; // Сохраняем данные текущей фотографии
