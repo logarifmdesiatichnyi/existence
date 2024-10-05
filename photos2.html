@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photos</title>
+    <style>
+        div {
+            /* border: solid thin black; */
+        }
+
+        .main div {
+            vertical-align: top;
+        }
+
+        .thumbs {
+            padding: 0px;
+            width: 110px;
+            display: inline-block;
+        }
+
+        .photo {
+            width: 700px;
+            display: inline-block;
+        }
+
+        #big_photo {
+            height: 600px;
+            margin-left: 10px;
+            display: none;
+        }
+
+        div.thumbs img {
+            height: 100px;
+            margin: 5px;
+            transition: border 0.3s ease;
+        }
+
+        div.thumbs img:hover {
+            border: solid 2px rgb(0, 231, 0);
+            margin: 3px;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .active {
+            border: solid 3px blue;
+            margin: 2px;
+            border-radius: 10%;
+        }
+    </style>
+    <script>
+        function showBigPhoto(source_element) {
+            let bigPhoto = document.getElementById("big_photo");
+            let src_thumb = source_element.src;
+            let src_big = src_thumb.replace("_small", "");
+
+            if (bigPhoto.src.includes(src_big)) {
+                bigPhoto.src = "";
+                bigPhoto.style.display = "none"; 
+                source_element.classList.remove('active');
+            } else {
+                let activeThumbnail = document.querySelector('.active');
+                if (activeThumbnail) {
+                    activeThumbnail.classList.remove('active');
+                }
+
+                source_element.classList.add('active');
+
+                bigPhoto.src = src_big;
+                bigPhoto.style.display = "block";
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Фотоальбом</h1>
+    <div class="main">
+        <div class="thumbs">
+            <img src="photos/John Lennon_small.jpg" onclick="showBigPhoto(this);" />
+            <img src="photos/Karl Marx_small.jpg" onclick="showBigPhoto(this);" />
+            <img src="photos/Naomi Campbell_small.jpg" onclick="showBigPhoto(this);" />
+            <img src="photos/Paris Hilton_small.jpg" onclick="showBigPhoto(this);" />
+        </div>
+        <div class="photo">
+            <img id="big_photo" />
+        </div>
+    </div>
+</body>
+</html>
