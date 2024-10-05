@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photos</title>
+    <style>
+        div {
+            /* border: solid thin black; */
+        }
+
+        .main div {
+            vertical-align: top;
+        }
+
+        .thumbs {
+            padding: 0px;
+            width: 110px;
+            display: inline-block;
+        }
+
+        .photo {
+            width: 700px;
+            display: inline-block;
+        }
+
+        #big_photo {
+            height: 600px;
+            margin-left: 10px;
+            visibility: hidden; /* По умолчанию картинка невидима */
+            opacity: 0;
+            transition: all 0.5s ease; /* Плавное скрытие и показ */
+        }
+
+        div.thumbs img {
+            height: 100px;
+            margin: 5px;
+            transition: border 0.3s ease;
+        }
+
+        div.thumbs img:hover {
+            border: solid 2px red;
+            margin: 3px;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        .active {
+            border: solid 3px blue;
+            margin: 2px;
+            border-radius: 10%;
+        }
+    </style>
+    <script>
+        let locked = false;  // Переменная для отслеживания состояния нажатия
+
+        function showBigPhotoOnHover(source_element) {
+            if (!locked) { // Показывать изображение только если не зафиксировано кликом
+                let bigPhoto = document.getElementById("big_photo");
+                let src_thumb = source_element.src;
+                let src_big = src_thumb.replace("_small", "");
+
+                bigPhoto.src = src_big;
+                bigPhoto.style.visibility = "visible";
+                bigPhoto.style.opacity = "1";
+            }
+        }
+
+        function hideBigPhoto() {
+            if (!locked) { // Скрывать изображение только если не зафиксировано кликом
+                let bigPhoto = document.getElementById("big_photo");
+
+                bigPhoto.style.visibility = "hidden";
+                bigPhoto.style.opacity = "0";
+            }
+        }
+
+        function showBigPhoto(source_element) {
+            let bigPhoto = document.getElementById("big_photo");
+            let src_thumb = source_element.src;
+            let src_big = src_thumb.replace("_small", "");
+            let photoName = document.getElementById('photo_name');
+            let photoDesc = document.getElementById('photo_desc');
+
+            // Если изображение уже показано, скрыть его
+            if (bigPhoto.src.includes(src_big) && locked) {
+                bigPhoto.style.visibility = "hidden";
+                bigPhoto.style.opacity = "0";
+                locked = false;
+                source_element.classList.remove('active');
+            } else {
+                // Показать большое фото и зафиксировать его
+                bigPhoto.src = src_big;
+                bigPhoto.style.visibility = "visible";
+                bigPhoto.style.opacity = "1";
+                locked = true;
+
+                // Сбросить предыдущую активную миниатюру
+                let activeThumbnail = document.querySelector('.active');
+                if (activeThumbnail) {
+                    activeThumbnail.classList.remove('active');
+                }
+
+                // Добавить класс для активной миниатюры
+                source_element.classList.add('active');
+
+                // Получение информации о фотографии
+                fetch('photos_data.php')
+                    .then(response => response.json())
+                    .then(data => {
+                        const photo = data.photos.find(p => p.ThumbPath === source_element.src.split('/').pop());
+                        if (photo) {
+                            photoName.textContent = photo.PhotoName;
+                            photoDesc.textContent = photo.Description;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Ошибка при загрузке данных фото:', error);
+                    });
+            }
+        }
+
+        // Загрузка миниатюр на страницу
+        window.onload = function() {
+            fetch('photos_data.php')
+                .then(response => response.json())
+                .then(data => {
+                    const thumbsDiv = document.querySelector('.thumbs');
+                    data.photos.forEach(photo => {
+                        const img = document.createElement('img');
+                        img.src = `photos/${photo.ThumbPath}`;
+                        img.onclick = () => showBigPhoto(img);
+                        img.onmouseover = () => showBigPhotoOnHover(img);
+                        img.onmouseout = hideBigPhoto;
+                        thumbsDiv.appendChild(img);
+                    });
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке миниатюр:', error);
+                });
+        };
+    </script>
+</head>
+<body>
+    <h1>Фотоальбом</h1>
+    <div class="main">
+        <div class="thumbs">
+            <!-- Миниатюры будут динамически добавлены сюда -->
+        </div>
+        <div class="photo">
+            <img id="big_photo" />
+            <div id="photo_info">
+                <h2 id="photo_name"></h2>
+                <p id="photo_desc"></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
