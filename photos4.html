@@ -50,9 +50,14 @@
             margin: 2px;
             border-radius: 10%;
         }
+
+        #photo_info {
+            margin-top: 20px;
+        }
     </style>
     <script>
         let locked = false;  // Переменная для отслеживания состояния нажатия
+        let currentPhotoData = {}; // Данные текущей фотографии
 
         function showBigPhotoOnHover(source_element) {
             if (!locked) { // Показывать изображение только если не зафиксировано кликом
@@ -79,8 +84,6 @@
             let bigPhoto = document.getElementById("big_photo");
             let src_thumb = source_element.src;
             let src_big = src_thumb.replace("_small", "");
-            let photoName = document.getElementById('photo_name');
-            let photoDesc = document.getElementById('photo_desc');
 
             // Если изображение уже показано, скрыть его
             if (bigPhoto.src.includes(src_big) && locked) {
@@ -88,6 +91,7 @@
                 bigPhoto.style.opacity = "0";
                 locked = false;
                 source_element.classList.remove('active');
+                document.getElementById("photo_info").innerHTML = ""; // Очищаем информацию
             } else {
                 // Показать большое фото и зафиксировать его
                 bigPhoto.src = src_big;
@@ -104,55 +108,48 @@
                 // Добавить класс для активной миниатюры
                 source_element.classList.add('active');
 
-                // Получение информации о фотографии
-                fetch('photos_data.php')
-                    .then(response => response.json())
-                    .then(data => {
-                        const photo = data.photos.find(p => p.ThumbPath === source_element.src.split('/').pop());
-                        if (photo) {
-                            photoName.textContent = photo.PhotoName;
-                            photoDesc.textContent = photo.Description;
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Ошибка при загрузке данных фото:', error);
-                    });
+                // Обновляем информацию о фотографии
+                document.getElementById("photo_info").innerHTML = `
+                    <h2>${currentPhotoData.PhotoName}</h2>
+                    <p>${currentPhotoData.Description}</p>
+                `;
             }
         }
 
-        // Загрузка миниатюр на страницу
-        window.onload = function() {
+        function fetchPhotos() {
             fetch('photos_data.php')
                 .then(response => response.json())
                 .then(data => {
-                    const thumbsDiv = document.querySelector('.thumbs');
+                    const thumbsContainer = document.querySelector('.thumbs');
+                    thumbsContainer.innerHTML = ''; // Очищаем контейнер
+
                     data.photos.forEach(photo => {
                         const img = document.createElement('img');
                         img.src = `photos/${photo.ThumbPath}`;
-                        img.onclick = () => showBigPhoto(img);
+                        img.alt = photo.PhotoName;
                         img.onmouseover = () => showBigPhotoOnHover(img);
                         img.onmouseout = hideBigPhoto;
-                        thumbsDiv.appendChild(img);
+                        img.onclick = () => {
+                            currentPhotoData = photo; // Сохраняем данные текущей фотографии
+                            showBigPhoto(img);
+                        };
+
+                        thumbsContainer.appendChild(img);
                     });
                 })
-                .catch(error => {
-                    console.error('Ошибка при загрузке миниатюр:', error);
-                });
-        };
+                .catch(error => console.error('Ошибка при загрузке данных фото:', error));
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchPhotos);
     </script>
 </head>
 <body>
     <h1>Фотоальбом</h1>
     <div class="main">
-        <div class="thumbs">
-            <!-- Миниатюры будут динамически добавлены сюда -->
-        </div>
+        <div class="thumbs"></div>
         <div class="photo">
             <img id="big_photo" />
-            <div id="photo_info">
-                <h2 id="photo_name"></h2>
-                <p id="photo_desc"></p>
-            </div>
+            <div id="photo_info"></div> <!-- Блок для названия и описания -->
         </div>
     </div>
 </body>
