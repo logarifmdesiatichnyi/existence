@@ -1,10 +1,9 @@
 <?php
 function getAllPhotos() {
-    // Подключаемся к базе данных
     $host = 'localhost';
     $db   = 'photos';
-    $user = 'root'; // Пользователь XAMPP
-    $pass = '';     // Пароль XAMPP
+    $user = 'root';
+    $pass = '';
     $charset = 'utf8mb4';
 
     $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
@@ -20,12 +19,10 @@ function getAllPhotos() {
         throw new \PDOException($e->getMessage(), (int)$e->getCode());
     }
 
-    // Запрос всех фотографий
     $stmt = $pdo->query('SELECT PhotoID, LargePath, ThumbPath, PhotoName, Description FROM photos');
     return $stmt->fetchAll();
 }
 
-// Возвращаем данные в формате JSON
 header('Content-Type: application/json');
 $photos = getAllPhotos();
 echo json_encode(['photos' => $photos]);

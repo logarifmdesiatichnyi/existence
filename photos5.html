@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photos</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin: 20px;
+            color: #333;
+        }
+
+        .main {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .thumbs {
+            width: 120px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .thumbs img {
+            width: 100%;
+            border-radius: 15px;
+            transition: transform 0.5s ease, box-shadow 0.5s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .thumbs img:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+        }
+
+        .thumbs img.active {
+            border: solid 3px rgb(42, 220, 42);
+            border-radius: 12px;
+            transform: scale(1.2);
+        }
+
+        .photo {
+            width: 700px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: linear-gradient(135deg, #e0e0e0, #ffffff);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        #big_photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.5) rotate(0deg);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+            border-radius: 15px;
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        #big_photo.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1.1) rotate(360deg); /* Увеличенный эффект приближения */
+        }
+
+        #photo_info {
+            margin-top: 20px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            font-size: 1.2rem;
+            color: #333;
+        }
+
+        #photo_info.active {
+            opacity: 1;
+        }
+
+        .loader {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(0, 0, 0, 0.1);
+            border-top-color: #333;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+    <script>
+        let locked = false;
+        let currentPhotoData = {};
+        let currentBigPhoto = null; // Хранит текущее большое фото
+
+        function showBigPhoto(source_element) {
+            const bigPhoto = document.getElementById("big_photo");
+            const loader = document.querySelector('.loader');
+            const src_thumb = source_element.src;
+            const src_big = src_thumb.replace("_small", "");
+
+            loader.style.display = "block"; // Показать прелоадер
+
+            // Если текущее большое фото совпадает с выбранным
+            if (currentBigPhoto === src_big && locked) {
+                bigPhoto.classList.remove("active");
+                document.getElementById("photo_info").classList.remove("active");
+                locked = false;
+                source_element.classList.remove('active');
+                document.getElementById("photo_info").innerHTML = "";
+                currentBigPhoto = null; // Сброс текущего фото
+                loader.style.display = "none"; // Скрыть прелоадер
+                return;
+            }
+
+            // Показать новое изображение с анимацией
+            if (currentBigPhoto) {
+                // Скрываем текущее изображение
+                bigPhoto.classList.remove("active");
+                setTimeout(() => {
+                    // Меняем src после скрытия
+                    bigPhoto.src = src_big;
+                    currentBigPhoto = src_big;
+                    bigPhoto.onload = () => {
+                        loader.style.display = "none"; // Скрыть прелоадер
+                        bigPhoto.classList.add("active");
+                        document.getElementById("photo_info").classList.add("active");
+                    };
+                }, 600); // Дожидаемся окончания анимации исчезновения
+            } else {
+                // Устанавливаем начальное состояние
+                bigPhoto.src = src_big;
+                currentBigPhoto = src_big;
+                bigPhoto.onload = () => {
+                    loader.style.display = "none"; // Скрыть прелоадер
+                    bigPhoto.classList.add("active");
+                    document.getElementById("photo_info").classList.add("active");
+                };
+            }
+
+            locked = true;
+
+            const activeThumbnail = document.querySelector('.active');
+            if (activeThumbnail) {
+                activeThumbnail.classList.remove('active');
+            }
+
+            source_element.classList.add('active');
+            document.getElementById("photo_info").innerHTML = `
+                <h2>${currentPhotoData.PhotoName}</h2>
+                <p>${currentPhotoData.Description}</p>
+            `;
+        }
+
+        function preloadImages(photoData) {
+            photoData.forEach(photo => {
+                const img = new Image();
+                img.src = `photos/${photo.LargePath}`;
+            });
+        }
+
+        function fetchPhotos() {
+            fetch('photos_data.php')
+                .then(response => response.json())
+                .then(data => {
+                    const thumbsContainer = document.querySelector('.thumbs');
+                    thumbsContainer.innerHTML = '';
+
+                    data.photos.forEach(photo => {
+                        const img = document.createElement('img');
+                        img.src = `photos/${photo.ThumbPath}`;
+                        img.alt = photo.PhotoName;
+                        img.onclick = () => {
+                            currentPhotoData = photo;
+                            showBigPhoto(img);
+                        };
+
+                        thumbsContainer.appendChild(img);
+                    });
+
+                    preloadImages(data.photos);
+                })
+                .catch(error => console.error('Ошибка при загрузке данных фото:', error));
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchPhotos);
+    </script>
+</head>
+<body>
+    <h1>Фотоальбом</h1>
+    <div class="main">
+        <div class="thumbs"></div>
+        <div class="photo">
+            <div class="loader"></div>
+            <img id="big_photo" />
+            <div id="photo_info"></div>
+        </div>
+    </div>
+</body>
+</html>

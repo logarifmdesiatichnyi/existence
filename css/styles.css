@@ -1,0 +1,64 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+}
+
+h1 {
+    text-align: center;
+}
+
+.main {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.thumbs {
+    padding: 0;
+    width: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.thumbs img {
+    height: 100px;
+    margin: 5px;
+    transition: border 0.3s ease;
+    cursor: pointer;
+}
+
+.thumbs img:hover {
+    border: solid 2px rgb(39, 144, 248);
+    border-radius: 50%;
+}
+
+.active {
+    border: solid 3px rgb(42, 220, 42);
+}
+
+.photo {
+    width: 700px;
+    position: relative;
+    overflow: hidden; /* Скрываем изображение, если оно выходит за границы */
+}
+
+#big_photo {
+    height: 600px;
+    margin-left: 10px;
+    visibility: hidden; /* По умолчанию картинка невидима */
+    opacity: 0;
+    transform: scale(0.8); /* Начальный размер изображения */
+    transition: opacity 0.5s ease, transform 0.5s ease; /* Плавное скрытие и показ */
+}
+
+#big_photo.visible {
+    visibility: visible;
+    opacity: 1;
+    transform: scale(1); /* Полный размер при показе */
+}
+
+#photo_info {
+    margin-top: 20px;
+    text-align: center;
+}
