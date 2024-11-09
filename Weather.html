@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Погода</title>
+</head>
+<body>
+    <h2>Получить текущую температуру</h2>
+    <button onclick="showTemperature()">Узнать температуру</button>
+    <p id="temperature"></p>
+
+    <!-- Форма для ручного ввода координат -->
+    <div id="manualInput" style="display:none;">
+        <h3>Ввести координаты вручную</h3>
+        <label>Широта: <input type="number" id="manualLat" step="0.0001"></label><br>
+        <label>Долгота: <input type="number" id="manualLon" step="0.0001"></label><br>
+        <button onclick="showTemperatureManual()">Получить температуру</button>
+    </div>
+
+    <script>
+        async function getTemperature() {
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject);
+                });
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+
+                const response = await fetch(`getWeather.php?lat=${lat}&lon=${lon}`);
+                const data = await response.json();
+
+                if (data.temperature !== undefined) {
+                    return data.temperature;
+                } else {
+                    throw new Error(data.error || 'Не удалось получить температуру');
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
+                throw error;
+            }
+        }
+
+        async function showTemperature() {
+            try {
+                const temperature = await getTemperature();
+                document.getElementById('temperature').textContent = `Температура: ${temperature}°C`;
+            } catch (error) {
+                document.getElementById('temperature').textContent = 'Ошибка при получении температуры. Разрешите доступ к геопозиции.';
+                document.getElementById('manualInput').style.display = 'block';
+            }
+        }
+
+        async function getTemperatureManual() {
+            const lat = parseFloat(document.getElementById('manualLat').value);
+            const lon = parseFloat(document.getElementById('manualLon').value);
+            if (!isNaN(lat) && !isNaN(lon)) {
+                try {
+                    const temperature = await fetchTemperature(lat, lon);
+                    document.getElementById('temperature').textContent = `Температура: ${temperature}°C`;
+                } catch (error) {
+                    document.getElementById('temperature').textContent = 'Ошибка при получении температуры.';
+                }
+            } else {
+                alert('Введите корректные значения широты и долготы.');
+            }
+        }
+
+        async function fetchTemperature(lat, lon) {
+            const response = await fetch(`getWeather.php?lat=${lat}&lon=${lon}`);
+            const data = await response.json();
+            
+            if (data.temperature !== undefined) {
+                return data.temperature;
+            } else {
+                throw new Error(data.error || 'Ошибка получения данных');
+            }
+        }
+    </script>
+</body>
+</html>
