@@ -1,8 +1,10 @@
 # Используем официальный образ PHP с FPM
 FROM php:8.2-fpm
 
-# Устанавливаем Nginx
-RUN apt-get update && apt-get install -y nginx && rm -rf /var/lib/apt/lists/*
+# Устанавливаем необходимые утилиты и Nginx
+RUN apt-get update && \
+    apt-get install -y nginx apt-utils && \
+    rm -rf /var/lib/apt/lists/*
 
 # Копируем конфигурацию Nginx
 COPY nginx.conf /etc/nginx/nginx.conf
