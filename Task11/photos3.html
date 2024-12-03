@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Photo Album</title>
+    <style>
+        .thumbs img {
+            height: 100px;
+            margin: 5px;
+            transition: border 0.3s ease;
+        }
+        .thumbs img:hover {
+            border: solid 2px green;
+            cursor: pointer;
+        }
+        #big_photo {
+            display: none;
+            margin-top: 20px;
+            max-height: 600px;
+        }
+    </style>
+    <script>
+        function fetchPhotos() {
+            fetch('photos_list.php')
+                .then(response => response.json())
+                .then(data => {
+                    const thumbsDiv = document.querySelector('.thumbs');
+                    thumbsDiv.innerHTML = '';
+                    data.photos.forEach(photo => {
+                        const img = document.createElement('img');
+                        img.src = `photos/${photo}_small.jpg`;
+                        img.onclick = () => showBigPhoto(img);
+                        thumbsDiv.appendChild(img);
+                    });
+                });
+        }
+        function showBigPhoto(element) {
+            const bigPhoto = document.getElementById('big_photo');
+            bigPhoto.src = element.src.replace('_small', '');
+            bigPhoto.style.display = 'block';
+        }
+        document.addEventListener('DOMContentLoaded', fetchPhotos);
+    </script>
+</head>
+<body>
+    <h1>Dynamic Photo Album</h1>
+    <div class="thumbs"></div>
+    <img id="big_photo" src="" alt="Big Photo">
+</body>
+</html>
