@@ -1,16 +1,17 @@
-FROM nginx:latest
+# Используем образ с PHP и Nginx
+FROM php:7.4-fpm
 
-# Устанавливаем PHP и необходимые зависимости
-RUN apt-get update && apt-get install -y php7.4-fpm
+# Устанавливаем Nginx
+RUN apt-get update && apt-get install -y nginx
 
 # Копируем файлы проекта в контейнер
-COPY . /usr/share/nginx/html
+COPY . /var/www/html
 
-# Копируем конфигурационный файл Nginx
+# Копируем конфигурацию Nginx
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Открываем порт 8080
+# Открываем порты для Nginx и PHP
 EXPOSE 8080
 
-# Запускаем Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Запускаем Nginx и PHP-FPM
+CMD service nginx start && php-fpm
