@@ -2,7 +2,7 @@ FROM webdevops/php-nginx:8.3
 
 # Настройка переменных окружения
 ENV WEB_DOCUMENT_ROOT=/app \
-    WEB_DOCUMENT_INDEX=index.php \
+    WEB_DOCUMENT_INDEX=index.html \
     WEB_ALIAS_DOMAIN=*.vm \
     WEB_PHP_TIMEOUT=600 \
     WEB_PHP_SOCKET=127.0.0.1:9000 \
