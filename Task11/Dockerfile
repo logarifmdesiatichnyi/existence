@@ -1,22 +1,16 @@
-FROM php:8.1-fpm
+FROM nginx:latest
 
-# Устанавливаем Nginx
-RUN apt-get update && apt-get install -y nginx && apt-get clean
+# Устанавливаем PHP и необходимые зависимости
+RUN apt-get update && apt-get install -y php7.4-fpm
 
-# Копируем проект в директорию веб-сервера
-COPY . /var/www/html
+# Копируем файлы проекта в контейнер
+COPY . /usr/share/nginx/html
 
 # Копируем конфигурационный файл Nginx
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Назначаем права
-RUN chmod -R 755 /var/www/html
-
-# Указываем рабочую директорию
-WORKDIR /var/www/html
-
 # Открываем порт 8080
 EXPOSE 8080
 
-# Запускаем PHP-FPM и Nginx
-CMD ["sh", "-c", "php-fpm -D && nginx -g 'daemon off;'"]
+# Запускаем Nginx
+CMD ["nginx", "-g", "daemon off;"]
